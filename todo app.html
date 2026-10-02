@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Todoery – Ramsha's Planner</title>
+<style>
+:root{--bg:#fff;--side:#fafafa;--tx:#202020;--mu:#777;--bd:#e8e8e8;--rd:#db4c3f;--card:#fff;--p1:#d1453b;--p2:#eb8909;--p3:#246fe0;--p4:#8a8a8a}
+[data-theme=dark]{--bg:#1e1e1e;--side:#262626;--tx:#eee;--mu:#a0a0a0;--bd:#3a3a3a;--card:#2a2a2a}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+aside{width:272px;background:var(--side);border-right:1px solid var(--bd);padding:14px 10px;position:sticky;top:0;height:100vh;overflow:auto;flex-shrink:0}
+aside h1{font-size:18px;margin:4px 8px 12px;color:var(--rd)}
+.nav{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;text-align:left;padding:7px 10px;border-radius:6px}
+.nav:hover{background:rgba(128,128,128,.14)}
+.nav.on{background:rgba(219,76,63,.13);color:var(--rd);font-weight:600}
+.nav small{color:var(--mu)}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin:16px 10px 4px}
+.side-actions{display:flex;flex-direction:column;gap:6px;margin-top:16px;padding:0 6px}
+.btn{border:1px solid var(--bd);background:var(--card);padding:6px 10px;border-radius:6px}
+.btn:hover{border-color:var(--rd)}
+.btn.pri{background:var(--rd);border-color:var(--rd);color:#fff}
+main{flex:1;max-width:820px;margin:0 auto;padding:22px 20px 80px;min-width:0}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+#menu{display:none}
+h2{margin:0;font-size:24px}
+.sub{color:var(--mu);margin:0 0 14px}
+.add{display:flex;flex-wrap:wrap;gap:6px;border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:10px;margin:12px 0 18px}
+.add input[type=text]{flex:1 1 220px;border:0;background:none;outline:0;padding:6px}
+.add select,.add input[type=date]{border:1px solid var(--bd);background:var(--card);border-radius:6px;padding:5px}
+.task{display:flex;align-items:flex-start;gap:10px;padding:9px 4px;border-bottom:1px solid var(--bd)}
+.chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--p4);background:none;flex-shrink:0;margin-top:2px;padding:0;color:#fff;font-size:12px;line-height:1}
+.task.done .chk{background:currentColor}
+.task.done .tt{text-decoration:line-through;color:var(--mu)}
+.p1{color:var(--p1)}.p2{color:var(--p2)}.p3{color:var(--p3)}.p4{color:var(--p4)}
+.chk.p1{border-color:var(--p1)}.chk.p2{border-color:var(--p2)}.chk.p3{border-color:var(--p3)}
+.chk span{color:#fff}
+.body{flex:1;min-width:0}
+.tt{word-break:break-word}
+.meta{font-size:12px;color:var(--mu);display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.tag{background:rgba(219,76,63,.12);color:var(--rd);border-radius:10px;padding:0 7px}
+.ic{border:0;background:none;padding:2px 5px;border-radius:4px;opacity:.75}
+.ic:hover{opacity:1;background:rgba(128,128,128,.16)}
+.sec{display:flex;justify-content:space-between;align-items:center;margin:22px 0 2px;font-weight:700}
+.cnt{font-size:12px;border:1px solid currentColor;border-radius:10px;padding:0 8px}
+.empty{color:var(--mu);padding:8px 4px;font-size:14px}
+.bar{height:12px;background:var(--bd);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--rd);transition:width .4s}
+.card{border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.big{font-size:32px;font-weight:700;color:var(--rd)}
+.week{display:flex;gap:6px;align-items:flex-end;height:90px;margin-top:8px}
+.week div{flex:1;text-align:center;font-size:11px;color:var(--mu)}
+.week b{display:block;background:var(--rd);border-radius:4px 4px 0 0;min-height:3px}
+.dumpbtns button{font-size:12px;padding:2px 7px}
+textarea{width:100%;border:1px solid var(--bd);background:var(--card);border-radius:8px;padding:8px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:9px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:30;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20}
+#modal.on{display:flex}
+#modal div{background:var(--card);padding:28px;border-radius:14px;text-align:center;max-width:340px;margin:16px}
+#modal h3{margin:0 0 8px;font-size:22px}
+.cf{position:fixed;top:-12px;width:9px;height:14px;z-index:25;animation:fall 2.4s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.7}}
+@media(max-width:760px){
+ aside{position:fixed;left:-290px;z-index:15;transition:left .25s;box-shadow:2px 0 14px rgba(0,0,0,.25)}
+ aside.open{left:0}
+ #menu{display:inline-block}
+ main{padding:14px 12px 80px}
+}
+</style>
+</head>
+<body>
+<aside id="side"></aside>
+<main>
+ <div class="top"><button id="menu" class="btn" onclick="document.getElementById('side').classList.toggle('open')">☰</button><h2 id="title"></h2></div>
+ <div id="view"></div>
+</main>
+<div id="toast"></div>
+<div id="modal"><div><h3>🎉 Must-Dos done!</h3><p>All your P1 tasks for today are complete. Alhamdulillah, a real win. Take a breath!</p><button class="btn pri" onclick="document.getElementById('modal').classList.remove('on')">Keep going</button></div></div>
+<input type="file" id="imp" accept=".json" hidden>
+
+<script>
+const KEY='todoery_ramsha_v1';
+const PROJ=[
+ {id:'phd',n:'🧪 PhD Chemistry & Lab Research'},
+ {id:'free',n:'💼 Freelancing & B2B Engine'},
+ {id:'skills',n:'💻 Skill Acquisition & Online Classes'},
+ {id:'kids',n:'👶 Kids & Daycare Logistics'},
+ {id:'home',n:'🏡 Home & Self-Care'}];
+const PN={1:'Must-Do',2:'Should-Do',3:'Nice-to-Do',4:'Routine'};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const off=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
+const uid=()=>Math.random().toString(36).slice(2,10);
+const today=()=>iso();
+const pname=id=>id==='inbox'?'📥 Inbox':(PROJ.find(p=>p.id===id)||{n:id}).n;
+let S=load(),view='today';
+
+function mk(title,project,prio,o,tags){return{id:uid(),title,project,prio,date:iso(off(o)),done:false,tags:tags||[],doneAt:null}}
+function seed(){
+ const t=[];
+ t.push(mk('Record & log albino rat experiment data','phd',1,0));
+ t.push(mk('Send 5 targeted outreach messages to B2B academic clients','free',1,0));
+ t.push(mk('Tajweed class @ 5 PM','skills',1,0));
+ t.push(mk('Thesis: write one literature-review section','phd',2,0));
+ t.push(mk('Update portfolio case study','free',2,0));
+ t.push(mk('Plan next week\'s client proposals','free',2,0));
+ t.push(mk('Review one new paper abstract','phd',3,0));
+ t.push(mk('Watch one UI/UX lesson','skills',3,0));
+ t.push(mk('Reply to pending client email','free',4,0,['@2-min']));
+ t.push(mk('Upload file to shared drive','free',4,1,['@2-min']));
+ for(let o=0;o<7;o++){
+  const dw=off(o).getDay();
+  if(dw>=1&&dw<=5){t.push(mk('Daycare drop-off (campus)','kids',4,o));t.push(mk('Daycare pick-up','kids',4,o));}
+  if(o>0&&dw>=1&&dw<=5)t.push(mk('Tajweed class @ 5 PM','skills',2,o));
+  if([2,5,0].includes(dw))t.push(mk('Bath time: Abdullah & Ayesha','kids',4,o));
+  if([5,6].includes(dw))t.push(mk('Face & hair mask','home',o===0?3:4,o));
+  if(dw===6)t.push(mk('Laundry batch','home',2,o));
+  if(dw===0)t.push(mk('Weekly meal prep','home',2,o));
+  t.push(mk('Daily room tidying','home',4,o));
+ }
+ t.push(mk('Lab experiment: prep reagents & samples','phd',1,3));
+ t.push(mk('Draft proposal for new scientific-writing client','free',2,4));
+ t.push({id:uid(),title:'Call daycare about summer outing form',project:'inbox',prio:4,date:null,done:false,tags:[],doneAt:null});
+ return{tasks:t,dump:['Idea: LinkedIn post on PhD + motherhood routines','Check thesis formatting guidelines'],theme:'light'};
+}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2600)}
+function count(date,prio,skip){return S.tasks.filter(t=>t.date===date&&t.prio===prio&&t.id!==skip).length}
+function canPlace(date,prio,skip){
+ if(prio<=3&&date&&count(date,prio,skip)>=3){toast('3-3-3 limit: max 3 '+PN[prio]+' tasks on that day. Pick another priority or date.');return false}
+ return true}
+function addTask(title,project,prio,date,tags){
+ title=title.trim();if(!title){toast('Type a task first');return false}
+ if(!canPlace(date,prio))return false;
+ S.tasks.push({id:uid(),title,project,prio,date:date||null,done:false,tags:tags||[],doneAt:null});
+ save();render();return true}
+function confetti(){const c=['#db4c3f','#eb8909','#246fe0','#2ea44f','#f5c518'];
+ for(let i=0;i<70;i++){const e=document.createElement('i');e.className='cf';e.style.left=Math.random()*100+'vw';e.style.background=c[i%5];e.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),3200)}}
+function toggle(id){
+ const t=S.tasks.find(x=>x.id===id);t.done=!t.done;t.doneAt=t.done?today():null;save();render();
+ if(t.done){
+  const p1=S.tasks.filter(x=>x.date===today()&&x.prio===1);
+  if(t.prio===1&&t.date===today()&&p1.every(x=>x.done)){$('#modal').classList.add('on');confetti()}
+  else toast('✓ Nice, one more win!')}}
+function flag(id){
+ const t=S.tasks.find(x=>x.id===id);
+ for(let i=1;i<=4;i++){const p=t.prio%4+i>4?(t.prio+i-1)%4+1:t.prio+i;const np=((t.prio-1+i)%4)+1;
+  if(canPlace(t.date,np,id)||np===4){t.prio=np;break}else if(i===3){break}}
+ save();render()}
+function del(id){S.tasks=S.tasks.filter(t=>t.id!==id);save();render()}
+
+function row(t){
+ const d=t.date?(t.date===today()?'Today':t.date):'';
+ return `<div class="task ${t.done?'done':''}"><button class="chk p${t.prio}" onclick="toggle('${t.id}')" aria-label="complete">${t.done?'✓':''}</button>
+ <div class="body"><div class="tt">${esc(t.title)}</div><div class="meta"><span>${esc(pname(t.project))}</span>${d?`<span>📅 ${d}</span>`:''}${t.tags.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div></div>
+ <button class="ic p${t.prio}" title="${PN[t.prio]} – click to change priority" onclick="flag('${t.id}')">⚑</button>
+ <button class="ic" title="Delete" onclick="del('${t.id}')">🗑</button></div>`}
+const list=(a,e)=>a.length?a.map(row).join(''):`<div class="empty">${e||'Nothing here yet.'}</div>`;
+
+function addBar(defProj,defDate){
+ return `<div class="add"><input type="text" id="nt" placeholder="Add a task…  (Enter)" onkeydown="if(event.key==='Enter')submitAdd()">
+ <select id="np">${['inbox',...PROJ.map(p=>p.id)].map(i=>`<option value="${i}" ${i===defProj?'selected':''}>${esc(pname(i))}</option>`).join('')}</select>
+ <select id="npr"><option value="1">P1 Must</option><option value="2">P2 Should</option><option value="3">P3 Nice</option><option value="4" selected>P4 Routine</option></select>
+ <input type="date" id="nd" value="${defDate||''}">
+ <button class="btn pri" onclick="submitAdd()">Add</button>
+ <button class="btn" title="2-Minute Rule" onclick="quick()">⚡ 2-min</button></div>`}
+function submitAdd(){if(addTask($('#nt').value,$('#np').value,+$('#npr').value,$('#nd').value||null))toast('Task added')}
+function quick(){const v=$('#nt').value;if(!v.trim()){$('#nt').focus();toast('Type a micro-task, then tap ⚡ 2-min');return}addTask(v,$('#np').value,4,today(),['@2-min'])}
+
+function stats(){
+ const pct=(a)=>a.length?Math.round(a.filter(t=>t.done).length/a.length*100):0;
+ const now=new Date(),dw=(now.getDay()+6)%7,ws=iso(off(-dw)),we=iso(off(6-dw)),ms=today().slice(0,7);
+ const day=S.tasks.filter(t=>t.date===today()),wk=S.tasks.filter(t=>t.date>=ws&&t.date<=we),mo=S.tasks.filter(t=>t.date&&t.date.slice(0,7)===ms);
+ const days=new Set(S.tasks.filter(t=>t.doneAt).map(t=>t.doneAt));
+ let s=0,i=days.has(today())?0:1;while(days.has(iso(off(-i)))){s++;i++}
+ return{d:pct(day),w:pct(wk),m:pct(mo),dn:day.length,wn:wk.length,mn:mo.length,streak:s,total:S.tasks.filter(t=>t.done).length,days}}
+
+function render(){
+ const T=today(),pend=S.tasks.filter(t=>!t.done);
+ const todayN=pend.filter(t=>t.date===T).length,inboxN=pend.filter(t=>t.project==='inbox').length;
+ const nv=(id,l,n)=>`<button class="nav ${view===id?'on':''}" onclick="go('${id}')"><span>${l}</span><small>${n??''}</small></button>`;
+ $('#side').innerHTML=`<h1>✔ Todoery</h1>${nv('inbox','📥 Inbox',inboxN||'')}${nv('today','📆 Today (3-3-3 Focus)',todayN||'')}${nv('upcoming','🗓 Upcoming','')}${nv('dump','🧠 Brain Dump',S.dump.length||'')}${nv('progress','🏆 Progress & Wins','')}
+ <div class="lbl">Projects</div>${PROJ.map(p=>nv('p:'+p.id,esc(p.n),pend.filter(t=>t.project===p.id).length||'')).join('')}
+ <div class="side-actions"><button class="btn" onclick="theme()">🌓 Dark / Light</button><button class="btn" onclick="exportJ()">⬇ Export JSON Backup</button><button class="btn" onclick="$('#imp').click()">⬆ Import JSON Backup</button></div>`;
+ document.documentElement.dataset.theme=S.theme;
+ const V=$('#view');
+ if(view==='inbox'){$('#title').textContent='📥 Inbox';V.innerHTML=addBar('inbox','')+list(pend.filter(t=>t.project==='inbox'),'Inbox zero. 🎉')}
+ else if(view==='today'){$('#title').textContent='📆 Today · 3-3-3';
+  const od=pend.filter(t=>t.date&&t.date<T);
+  const sec=(p,l)=>{const a=S.tasks.filter(t=>t.date===T&&t.prio===p);return `<div class="sec p${p}"><span>${l}</span><span class="cnt">${a.length}/3</span></div>${list(a,'Free slot')}`};
+  const rt=S.tasks.filter(t=>t.date===T&&t.prio===4);
+  V.innerHTML=`<p class="sub">3 Must-Dos · 3 Should-Dos · 3 Nice-to-Dos. Everything else is routine.</p>`+addBar('inbox',T)+
+  (od.length?`<div class="sec"><span>⏰ Overdue</span><span class="cnt">${od.length}</span></div>${list(od)}`:'')+
+  sec(1,'🔴 3 Must-Dos (P1)')+sec(2,'🟠 3 Should-Dos (P2)')+sec(3,'🔵 3 Nice-to-Dos (P3)')+
+  `<div class="sec p4"><span>⚪ Routine (P4) & ⚡ 2-min</span><span class="cnt">${rt.length}</span></div>${list(rt,'No routine tasks')}`}
+ else if(view==='upcoming'){$('#title').textContent='🗓 Upcoming';
+  const up=pend.filter(t=>t.date&&t.date>T).sort((a,b)=>a.date.localeCompare(b.date)||a.prio-b.prio);
+  const g={};up.forEach(t=>(g[t.date]=g[t.date]||[]).push(t));
+  V.innerHTML=addBar('inbox',iso(off(1)))+(Object.keys(g).map(d=>`<div class="sec"><span>${new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</span><span class="cnt">${g[d].length}</span></div>${g[d].map(row).join('')}`).join('')||'<div class="empty">Nothing scheduled.</div>')}
+ else if(view==='dump'){$('#title').textContent='🧠 Brain Dump';
+  V.innerHTML=`<p class="sub">Parking lot for raw thoughts. Move the important ones into today's focus.</p><div class="add"><input type="text" id="bd" placeholder="Dump a thought, chore or thesis note… (Enter)" onkeydown="if(event.key==='Enter')addDump()"><button class="btn pri" onclick="addDump()">Dump</button></div>`+
+  (S.dump.map((d,i)=>`<div class="task"><div class="body"><div class="tt">${esc(d)}</div><div class="meta dumpbtns">Move to Today:
+   <button class="btn p1" onclick="mv(${i},1)">Must</button><button class="btn p2" onclick="mv(${i},2)">Should</button><button class="btn p3" onclick="mv(${i},3)">Nice</button></div></div><button class="ic" onclick="S.dump.splice(${i},1);save();render()">🗑</button></div>`).join('')||'<div class="empty">Your mind is clear.</div>')}
+ else if(view==='progress'){$('#title').textContent='🏆 Progress & Wins';const s=stats();
+  const bars=[['Today',s.d,s.dn],['This week',s.w,s.wn],['This month',s.m,s.mn]].map(([l,p,n])=>`<div class="card"><b>${l}</b> <span style="float:right">${p}% of ${n} tasks</span><div class="bar" style="margin-top:8px"><i style="width:${p}%"></i></div></div>`).join('');
+  let wk='';for(let i=6;i>=0;i--){const d=iso(off(-i)),n=S.tasks.filter(t=>t.doneAt===d).length;wk+=`<div><b style="height:${Math.min(n*10,70)}px"></b>${n}<br>${new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'short'})}</div>`}
+  V.innerHTML=`<div class="grid"><div class="card"><div class="big">🔥 ${s.streak}</div>day streak<br><small style="color:var(--mu)">consecutive days with a completed task</small></div><div class="card"><div class="big">${s.total}</div>total wins</div></div>${bars}<div class="card"><b>Completed per day (last 7)</b><div class="week">${wk}</div></div>`}
+ else{const id=view.slice(2);$('#title').textContent=pname(id);
+  const a=S.tasks.filter(t=>t.project===id);
+  V.innerHTML=addBar(id,'')+list(a.filter(t=>!t.done).sort((x,y)=>x.prio-y.prio),'No open tasks')+(a.some(t=>t.done)?`<div class="sec"><span>✓ Completed</span></div>${a.filter(t=>t.done).map(row).join('')}`:'')}
+ $('#side').classList.remove('open')}
+function go(v){view=v;render();scrollTo(0,0)}
+function theme(){S.theme=S.theme==='dark'?'light':'dark';save();render()}
+function addDump(){const v=$('#bd').value.trim();if(!v)return;S.dump.unshift(v);save();render()}
+function mv(i,p){if(!canPlace(today(),p))return;S.tasks.push({id:uid(),title:S.dump[i],project:'inbox',prio:p,date:today(),done:false,tags:[],doneAt:null});S.dump.splice(i,1);save();render();toast('Moved to Today as '+PN[p])}
+function exportJ(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='todoery-backup-'+today()+'.json';a.click();toast('Backup downloaded')}
+$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.tasks))throw 0;S={tasks:d.tasks,dump:d.dump||[],theme:d.theme||'light'};save();render();toast('Backup imported')}catch(x){toast('Invalid backup file')}};r.readAsText(f);e.target.value=''};
+render();
+</script>
+</body>
+</html>
